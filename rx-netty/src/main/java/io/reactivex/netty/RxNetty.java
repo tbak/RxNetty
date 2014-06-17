@@ -25,6 +25,7 @@ import io.reactivex.netty.channel.SingleNioLoopProvider;
 import io.reactivex.netty.client.ClientBuilder;
 import io.reactivex.netty.client.RxClient;
 import io.reactivex.netty.pipeline.PipelineConfigurator;
+import io.reactivex.netty.pipeline.PipelineConfigurators;
 import io.reactivex.netty.protocol.http.client.CompositeHttpClient;
 import io.reactivex.netty.protocol.http.client.CompositeHttpClientBuilder;
 import io.reactivex.netty.protocol.http.client.ContentSource;
@@ -112,6 +113,18 @@ public final class RxNetty {
 
     public static RxClient<ByteBuf, ByteBuf> createTcpClient(String host, int port) {
         return RxNetty.<ByteBuf, ByteBuf>newTcpClientBuilder(host, port).build();
+    }
+
+    public static RxClient<ByteBuf, ByteBuf> createSslUnsecureTcpClient(String host, int port) {
+        return RxNetty.<ByteBuf, ByteBuf>newTcpClientBuilder(host, port)
+                .pipelineConfigurator(PipelineConfigurators.<ByteBuf, ByteBuf>sslUnsecureClientConfigurator())
+                .build();
+    }
+
+    public static RxClient<ByteBuf, ByteBuf> createSslTcpClient(String host, int port) {
+        return RxNetty.<ByteBuf, ByteBuf>newTcpClientBuilder(host, port)
+                .pipelineConfigurator(PipelineConfigurators.<ByteBuf, ByteBuf>sslClientConfigurator())
+                .build();
     }
 
     public static <I, O> HttpServerBuilder<I, O> newHttpServerBuilder(int port, RequestHandler<I, O> requestHandler) {

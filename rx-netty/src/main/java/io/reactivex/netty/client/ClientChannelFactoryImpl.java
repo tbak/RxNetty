@@ -66,14 +66,20 @@ public class ClientChannelFactoryImpl<I, O> implements ClientChannelFactory<I,O>
                 } else {
                     ChannelPipeline pipeline = future.channel().pipeline();
                     ChannelHandlerContext ctx = pipeline.firstContext();
-                    ObservableConnection<I, O> newConnection = connectionFactory.newConnection(ctx);
+                    final ObservableConnection<I, O> newConnection = connectionFactory.newConnection(ctx);
                     ChannelHandler lifecycleHandler = pipeline.get(RxRequiredConfigurator.CONN_LIFECYCLE_HANDLER_NAME);
                     if (null != lifecycleHandler) {
                         @SuppressWarnings("unchecked")
                         ConnectionLifecycleHandler<I, O> handler = (ConnectionLifecycleHandler<I, O>) lifecycleHandler;
-                        handler.setConnection(newConnection);
+                        handler.setConnection(newConnection, new Action0() {
+                            @Override
+                            public void call() {
+                                onNewConnection(newConnection, subscriber);
+                            }
+                        });
+                    } else {
+                        onNewConnection(newConnection, subscriber);
                     }
-                    onNewConnection(newConnection, subscriber);
                 }
             }
         });

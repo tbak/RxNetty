@@ -16,9 +16,12 @@
 package io.reactivex.netty.pipeline;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.ssl.SslContext;
 import io.reactivex.netty.client.ClientRequiredConfigurator;
 import io.reactivex.netty.client.RxClient;
 import io.reactivex.netty.protocol.http.HttpObjectAggregationConfigurator;
@@ -35,6 +38,9 @@ import io.reactivex.netty.protocol.text.sse.ServerSentEvent;
 
 import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
+
+import static io.reactivex.netty.client.ClientSslPipelineConfigurator.ClientSslContextBuilder;
+import static io.reactivex.netty.client.ClientSslPipelineConfigurator.SecurityLevel;
 
 /**
  * Utility class that provides a variety of {@link PipelineConfigurator} implementations
@@ -85,6 +91,14 @@ public final class PipelineConfigurators {
 
     public static <I> PipelineConfigurator<HttpServerRequest<I>, HttpServerResponse<ServerSentEvent>> sseServerConfigurator() {
         return new SseOverHttpServerPipelineConfigurator<I>();
+    }
+
+    public static <I, O> PipelineConfigurator<I, O> sslClientConfigurator() {
+        return new ClientSslContextBuilder().withSecurityLevel(SecurityLevel.TRUSTED_SERVER).build();
+    }
+
+    public static <I, O> PipelineConfigurator<I, O> sslUnsecureClientConfigurator() {
+        return new ClientSslContextBuilder().withSecurityLevel(SecurityLevel.UNSECURE).build();
     }
 
     /**

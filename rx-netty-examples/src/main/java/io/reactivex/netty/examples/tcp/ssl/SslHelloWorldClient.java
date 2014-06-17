@@ -15,14 +15,14 @@
  */
 package io.reactivex.netty.examples.tcp.ssl;
 
+import io.netty.buffer.ByteBuf;
 import io.reactivex.netty.RxNetty;
 import io.reactivex.netty.channel.ObservableConnection;
-import io.reactivex.netty.pipeline.PipelineConfigurators;
-import io.reactivex.netty.pipeline.SslClientPipelineConfigurator;
+import io.reactivex.netty.client.RxClient;
 import rx.Observable;
 import rx.functions.Func1;
 
-import javax.net.ssl.SSLException;
+import java.nio.charset.Charset;
 
 import static io.reactivex.netty.examples.tcp.ssl.SslHelloWorldServer.DEFAULT_PORT;
 
@@ -37,18 +37,20 @@ public class SslHelloWorldClient {
         this.port = port;
     }
 
-    public void sendHelloRequest() throws SSLException {
-        SslClientPipelineConfigurator pipelineConfigurator = new SslClientPipelineConfigurator(PipelineConfigurators.textOnlyConfigurator());
-        Object msg = RxNetty.createTcpClient("localhost", port, pipelineConfigurator).connect().flatMap(new Func1<ObservableConnection<String, String>, Observable<?>>() {
+    public void sendHelloRequest() throws Exception {
+        RxClient<ByteBuf, ByteBuf> rxClient = RxNetty.createSslUnsecureTcpClient("localhost", port);
+
+        String msg = rxClient.connect().flatMap(new Func1<ObservableConnection<ByteBuf, ByteBuf>, Observable<String>>() {
             @Override
-            public Observable<?> call(final ObservableConnection<String, String> observableConnection) {
+            public Observable<String> call(final ObservableConnection<ByteBuf, ByteBuf> observableConnection) {
                 System.out.println("Sending WELCOME");
-                observableConnection.writeAndFlush("WELCOME");
-                return observableConnection.getInput().map(new Func1<Object, String>() {
+                observableConnection.writeStringAndFlush("WELCOME");
+                return observableConnection.getInput().map(new Func1<ByteBuf, String>() {
                     @Override
-                    public String call(Object o) {
-                        System.out.println("received echo reply: " + o);
-                        return o.toString();
+                    public String call(ByteBuf content) {
+                        String s = content.toString(Charset.defaultCharset());
+                        System.out.println("received echo reply: " + s);
+                        return s;
                     }
                 });
             }
@@ -60,7 +62,7 @@ public class SslHelloWorldClient {
     public static void main(String[] args) {
         try {
             new SslHelloWorldClient(DEFAULT_PORT).sendHelloRequest();
-        } catch (SSLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
