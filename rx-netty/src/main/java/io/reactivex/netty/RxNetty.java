@@ -111,6 +111,13 @@ public final class RxNetty {
         return new ServerBuilder<ByteBuf, ByteBuf>(port, connectionHandler).build();
     }
 
+    public static RxServer<ByteBuf, ByteBuf> createSslUnsecureTcpServer(final int port,
+                                                             ConnectionHandler<ByteBuf, ByteBuf> connectionHandler) {
+        return new ServerBuilder<ByteBuf, ByteBuf>(port, connectionHandler)
+                .pipelineConfigurator(PipelineConfigurators.<ByteBuf, ByteBuf>sslUnsecureServerConfigurator())
+                .build();
+    }
+
     public static RxClient<ByteBuf, ByteBuf> createTcpClient(String host, int port) {
         return RxNetty.<ByteBuf, ByteBuf>newTcpClientBuilder(host, port).build();
     }

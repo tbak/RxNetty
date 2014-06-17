@@ -15,17 +15,17 @@
  */
 package io.reactivex.netty.examples.tcp.ssl;
 
+import io.netty.buffer.ByteBuf;
 import io.reactivex.netty.RxNetty;
 import io.reactivex.netty.channel.ConnectionHandler;
 import io.reactivex.netty.channel.ObservableConnection;
-import io.reactivex.netty.pipeline.PipelineConfigurators;
-import io.reactivex.netty.pipeline.SslServerPipelineConfigurator;
 import io.reactivex.netty.server.RxServer;
 import rx.Observable;
 import rx.functions.Action0;
 import rx.functions.Func1;
 
 import javax.net.ssl.SSLException;
+import java.nio.charset.Charset;
 import java.security.cert.CertificateException;
 
 /**
@@ -37,38 +37,41 @@ public final class SslHelloWorldServer {
 
     private int port;
 
-    public SslHelloWorldServer(int port) {
+    public SslHelloWorldServer(int port) throws CertificateException {
         this.port = port;
     }
 
-    public RxServer<String, String> createServer() throws CertificateException, SSLException {
-        SslServerPipelineConfigurator pipelineConfigurator = new SslServerPipelineConfigurator(PipelineConfigurators.textOnlyConfigurator());
+    public RxServer<ByteBuf, ByteBuf> createServer() throws CertificateException, SSLException {
 
-        RxServer<String, String> server = RxNetty.createTcpServer(port, pipelineConfigurator,
-                new ConnectionHandler<String, String>() {
+        ConnectionHandler<ByteBuf, ByteBuf> connectionHandler = new ConnectionHandler<ByteBuf, ByteBuf>() {
+            @Override
+            public Observable<Void> handle(final ObservableConnection<ByteBuf, ByteBuf> connection) {
+                System.out.println("New client connection established.");
+                connection.writeStringAndFlush("Server welcome!");
+                return connection.getInput().map(new Func1<ByteBuf, String>() {
                     @Override
-                    public Observable<Void> handle(final ObservableConnection<String, String> connection) {
-                        System.out.println("New client connection established.");
-                        return connection.getInput().map(new Func1<String, String>() {
+                    public String call(ByteBuf content) {
+                        String s = content.toString(Charset.defaultCharset());
+                        System.out.println("received: " + s);
+                        return s;
+                    }
+                }).flatMap(new Func1<String, Observable<Void>>() {
+                    @Override
+                    public Observable<Void> call(String s) {
+                        System.out.println("sending echo reply: " + s);
+                        return connection.writeStringAndFlush("echo>> " + s).doOnCompleted(new Action0() {
                             @Override
-                            public String call(String s) {
-                                System.out.println("received: " + s);
-                                return s;
-                            }
-                        }).flatMap(new Func1<String, Observable<Void>>() {
-                            @Override
-                            public Observable<Void> call(String s) {
-                                System.out.println("sending echo reply: " + s);
-                                return connection.writeAndFlush("echo>> " + s).doOnCompleted(new Action0() {
-                                    @Override
-                                    public void call() {
-                                        connection.close();
-                                    }
-                                });
+                            public void call() {
+                                connection.close();
                             }
                         });
                     }
                 });
+            }
+        };
+
+        RxServer<ByteBuf, ByteBuf> server = RxNetty.createSslUnsecureTcpServer(port, connectionHandler);
+
         return server;
     }
 

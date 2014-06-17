@@ -24,7 +24,7 @@ import rx.functions.Action0;
 public class ConnectionLifecycleHandler<I, O> extends ChannelInboundHandlerAdapter {
 
     private ObservableConnection<I, O> connection;
-    private Action0 onNewConnection;
+    private Action0 connectionSetupAction;
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
@@ -34,20 +34,23 @@ public class ConnectionLifecycleHandler<I, O> extends ChannelInboundHandlerAdapt
         super.channelUnregistered(ctx);
     }
 
-    /*package private to set the connection*/ void setConnection(ObservableConnection<I, O> newConnection, Action0 onNewConnection) {
+    /*package private to set the connection*/ void setConnection(ObservableConnection<I, O> newConnection) {
         if (!newConnection.getChannelHandlerContext().channel().isRegistered()) {
             connection.close();
         } else {
             connection = newConnection;
-            this.onNewConnection = onNewConnection;
         }
+    }
+
+    void setConnectionAction(Action0 connectionSetupAction) {
+        this.connectionSetupAction = connectionSetupAction;
     }
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         super.userEventTriggered(ctx, evt);
-        if (null != onNewConnection && evt instanceof SslHandshakeCompletionEvent) {
-            onNewConnection.call();
+        if (null != connectionSetupAction && evt instanceof SslHandshakeCompletionEvent) {
+            connectionSetupAction.call();
         }
     }
 }

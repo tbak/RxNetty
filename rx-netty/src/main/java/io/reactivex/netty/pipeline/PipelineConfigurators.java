@@ -16,12 +16,10 @@
 package io.reactivex.netty.pipeline;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.reactivex.netty.client.ClientRequiredConfigurator;
 import io.reactivex.netty.client.RxClient;
 import io.reactivex.netty.protocol.http.HttpObjectAggregationConfigurator;
@@ -37,10 +35,10 @@ import io.reactivex.netty.protocol.text.SimpleTextProtocolConfigurator;
 import io.reactivex.netty.protocol.text.sse.ServerSentEvent;
 
 import java.nio.charset.Charset;
+import java.security.cert.CertificateException;
 import java.util.concurrent.TimeUnit;
 
-import static io.reactivex.netty.client.ClientSslPipelineConfigurator.ClientSslContextBuilder;
-import static io.reactivex.netty.client.ClientSslPipelineConfigurator.SecurityLevel;
+import static io.reactivex.netty.pipeline.SslPipelineConfigurator.SecurityLevel;
 
 /**
  * Utility class that provides a variety of {@link PipelineConfigurator} implementations
@@ -93,12 +91,21 @@ public final class PipelineConfigurators {
         return new SseOverHttpServerPipelineConfigurator<I>();
     }
 
+    /**
+     * This configurator creates self signed certificate for the server. Its primarily for testing purposes.
+     */
+    public static <I, O> PipelineConfigurator<I, O> sslUnsecureServerConfigurator() {
+        return new ServerSslPipelineConfigurator.ServerSslPipelineConfiguratorBuilder()
+                .withSecurityLevel(SecurityLevel.UNSECURE)
+                .build();
+    }
+
     public static <I, O> PipelineConfigurator<I, O> sslClientConfigurator() {
-        return new ClientSslContextBuilder().withSecurityLevel(SecurityLevel.TRUSTED_SERVER).build();
+        return new ClientSslPipelineConfigurator.ClientSslPipelineConfiguratorBuilder().withSecurityLevel(SecurityLevel.TRUSTED_SERVER).build();
     }
 
     public static <I, O> PipelineConfigurator<I, O> sslUnsecureClientConfigurator() {
-        return new ClientSslContextBuilder().withSecurityLevel(SecurityLevel.UNSECURE).build();
+        return new ClientSslPipelineConfigurator.ClientSslPipelineConfiguratorBuilder().withSecurityLevel(SecurityLevel.UNSECURE).build();
     }
 
     /**
