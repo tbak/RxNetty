@@ -147,8 +147,26 @@ public final class RxNetty {
         return newHttpServerBuilder(port, requestHandler).build();
     }
 
+    public static HttpServer<ByteBuf, ByteBuf> createSslUnsecureHttpServer(int port, RequestHandler<ByteBuf, ByteBuf> requestHandler) {
+        return newHttpServerBuilder(port, requestHandler)
+                .appendPipelineConfigurator(PipelineConfigurators.<HttpServerRequest<ByteBuf>, HttpServerResponse<ByteBuf>>sslUnsecureServerConfigurator())
+                .build();
+    }
+
     public static HttpClient<ByteBuf, ByteBuf> createHttpClient(String host, int port) {
         return RxNetty.<ByteBuf, ByteBuf>newHttpClientBuilder(host, port).build();
+    }
+
+    public static HttpClient<ByteBuf, ByteBuf> createSslUnsecureHttpClient(String host, int port) {
+        return RxNetty.<ByteBuf, ByteBuf>newHttpClientBuilder(host, port)
+                .appendPipelineConfigurator(PipelineConfigurators.<HttpClientResponse<ByteBuf>, HttpClientRequest<ByteBuf>>sslUnsecureClientConfigurator())
+                .build();
+    }
+
+    public static HttpClient<ByteBuf, ByteBuf> createSslHttpClient(String host, int port) {
+        return RxNetty.<ByteBuf, ByteBuf>newHttpClientBuilder(host, port)
+                .appendPipelineConfigurator(PipelineConfigurators.<HttpClientResponse<ByteBuf>, HttpClientRequest<ByteBuf>>sslClientConfigurator())
+                .build();
     }
 
     public static <I, O> HttpServer<I, O> createHttpServer(int port,

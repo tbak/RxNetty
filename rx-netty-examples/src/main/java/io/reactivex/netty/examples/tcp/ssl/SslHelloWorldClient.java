@@ -31,20 +31,22 @@ import static io.reactivex.netty.examples.tcp.ssl.SslHelloWorldServer.DEFAULT_PO
  */
 public class SslHelloWorldClient {
 
+    static final String WELCOME_TEXT = "WELCOME";
+
     private final int port;
 
     public SslHelloWorldClient(int port) {
         this.port = port;
     }
 
-    public void sendHelloRequest() throws Exception {
+    public String sendHelloRequest() throws Exception {
         RxClient<ByteBuf, ByteBuf> rxClient = RxNetty.createSslUnsecureTcpClient("localhost", port);
 
         String msg = rxClient.connect().flatMap(new Func1<ObservableConnection<ByteBuf, ByteBuf>, Observable<String>>() {
             @Override
             public Observable<String> call(final ObservableConnection<ByteBuf, ByteBuf> observableConnection) {
                 System.out.println("Sending WELCOME");
-                observableConnection.writeStringAndFlush("WELCOME");
+                observableConnection.writeStringAndFlush(WELCOME_TEXT);
                 return observableConnection.getInput().map(new Func1<ByteBuf, String>() {
                     @Override
                     public String call(ByteBuf content) {
@@ -57,6 +59,8 @@ public class SslHelloWorldClient {
         }).toBlocking().last();
 
         System.out.println("Got message: " + msg);
+
+        return msg;
     }
 
     public static void main(String[] args) {
