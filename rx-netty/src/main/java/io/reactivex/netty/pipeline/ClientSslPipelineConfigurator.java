@@ -43,7 +43,7 @@ public class ClientSslPipelineConfigurator<I, O> extends SslPipelineConfigurator
         }
 
         @Override
-        protected SslPipelineConfigurator buildUnsecure() {
+        protected SslPipelineConfigurator buildInsecure() {
             SslContext sslCtx;
             try {
                 sslCtx = SslContext.newClientContext(InsecureTrustManagerFactory.INSTANCE);

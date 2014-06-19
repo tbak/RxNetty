@@ -42,7 +42,7 @@ public class SslHelloWorldClient {
     }
 
     public HttpResponseStatus sendHelloRequest() throws Exception {
-        HttpClient<ByteBuf, ByteBuf> rxClient = RxNetty.createSslUnsecureHttpClient("localhost", port);
+        HttpClient<ByteBuf, ByteBuf> rxClient = RxNetty.createSslInsecureHttpClient("localhost", port);
 
         HttpResponseStatus statusCode = rxClient.submit(HttpClientRequest.createGet("/hello"))
                 .mergeMap(new Func1<HttpClientResponse<ByteBuf>, Observable<ByteBuf>>() {

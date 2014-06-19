@@ -10,7 +10,7 @@ import io.netty.handler.ssl.SslContext;
 public class SslPipelineConfigurator<I, O> implements PipelineConfigurator<I, O> {
     public static enum SecurityLevel {
         TRUSTED_SERVER,
-        UNSECURE
+        INSECURE
     }
 
     protected SslContext sslCtx;
@@ -41,8 +41,8 @@ public class SslPipelineConfigurator<I, O> implements PipelineConfigurator<I, O>
                 case TRUSTED_SERVER: {
                     return buildTrustedServer();
                 }
-                case UNSECURE: {
-                    return buildUnsecure();
+                case INSECURE: {
+                    return buildInsecure();
                 }
             }
             throw new IllegalStateException("unrecognized security level " + securityLevel);
@@ -50,7 +50,7 @@ public class SslPipelineConfigurator<I, O> implements PipelineConfigurator<I, O>
 
         protected abstract SslPipelineConfigurator buildTrustedServer();
 
-        protected abstract SslPipelineConfigurator buildUnsecure();
+        protected abstract SslPipelineConfigurator buildInsecure();
     }
 
 }

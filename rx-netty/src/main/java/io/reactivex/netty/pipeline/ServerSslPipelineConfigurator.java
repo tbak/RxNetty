@@ -54,7 +54,7 @@ public class ServerSslPipelineConfigurator<I, O> extends SslPipelineConfigurator
         }
 
         @Override
-        protected SslPipelineConfigurator buildUnsecure() {
+        protected SslPipelineConfigurator buildInsecure() {
             SelfSignedCertificate selfSigned;
             try {
                 selfSigned = new SelfSignedCertificate();

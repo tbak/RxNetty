@@ -40,7 +40,7 @@ public final class SslHelloWorldServer {
     }
 
     public HttpServer<ByteBuf, ByteBuf> createServer() throws CertificateException, SSLException {
-        HttpServer<ByteBuf, ByteBuf> server = RxNetty.createSslUnsecureHttpServer(port, new RequestHandler<ByteBuf, ByteBuf>() {
+        HttpServer<ByteBuf, ByteBuf> server = RxNetty.createSslInsecureHttpServer(port, new RequestHandler<ByteBuf, ByteBuf>() {
             @Override
             public Observable<Void> handle(HttpServerRequest<ByteBuf> request, final HttpServerResponse<ByteBuf> response) {
                 response.writeStringAndFlush("Welcome!!");

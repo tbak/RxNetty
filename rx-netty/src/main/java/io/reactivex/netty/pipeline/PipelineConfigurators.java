@@ -19,7 +19,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.reactivex.netty.client.ClientRequiredConfigurator;
 import io.reactivex.netty.client.RxClient;
 import io.reactivex.netty.protocol.http.HttpObjectAggregationConfigurator;
@@ -35,7 +34,6 @@ import io.reactivex.netty.protocol.text.SimpleTextProtocolConfigurator;
 import io.reactivex.netty.protocol.text.sse.ServerSentEvent;
 
 import java.nio.charset.Charset;
-import java.security.cert.CertificateException;
 import java.util.concurrent.TimeUnit;
 
 import static io.reactivex.netty.pipeline.SslPipelineConfigurator.SecurityLevel;
@@ -94,9 +92,9 @@ public final class PipelineConfigurators {
     /**
      * This configurator creates self signed certificate for the server. Its primarily for testing purposes.
      */
-    public static <I, O> PipelineConfigurator<I, O> sslUnsecureServerConfigurator() {
+    public static <I, O> PipelineConfigurator<I, O> sslInsecureServerConfigurator() {
         return new ServerSslPipelineConfigurator.ServerSslPipelineConfiguratorBuilder()
-                .withSecurityLevel(SecurityLevel.UNSECURE)
+                .withSecurityLevel(SecurityLevel.INSECURE)
                 .build();
     }
 
@@ -104,8 +102,8 @@ public final class PipelineConfigurators {
         return new ClientSslPipelineConfigurator.ClientSslPipelineConfiguratorBuilder().withSecurityLevel(SecurityLevel.TRUSTED_SERVER).build();
     }
 
-    public static <I, O> PipelineConfigurator<I, O> sslUnsecureClientConfigurator() {
-        return new ClientSslPipelineConfigurator.ClientSslPipelineConfiguratorBuilder().withSecurityLevel(SecurityLevel.UNSECURE).build();
+    public static <I, O> PipelineConfigurator<I, O> sslInsecureClientConfigurator() {
+        return new ClientSslPipelineConfigurator.ClientSslPipelineConfiguratorBuilder().withSecurityLevel(SecurityLevel.INSECURE).build();
     }
 
     /**
