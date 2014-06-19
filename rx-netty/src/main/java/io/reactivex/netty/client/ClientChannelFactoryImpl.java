@@ -61,7 +61,7 @@ public class ClientChannelFactoryImpl<I, O> implements ClientChannelFactory<I, O
                     subscriber.onError(future.cause());
                 } else {
                     ChannelPipeline pipeline = future.channel().pipeline();
-                    ChannelHandlerContext ctx = pipeline.firstContext();
+                    ChannelHandlerContext ctx = pipeline.lastContext(); // The connection uses the context for write which should always start from the tail.
                     final ObservableConnection<I, O> newConnection = connectionFactory.newConnection(ctx);
                     ChannelHandler lifecycleHandler = pipeline.get(RxRequiredConfigurator.CONN_LIFECYCLE_HANDLER_NAME);
                     if (null == lifecycleHandler) {

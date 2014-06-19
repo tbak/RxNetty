@@ -65,7 +65,7 @@ public class ConnectionLifecycleHandler<I, O> extends ChannelInboundHandlerAdapt
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         super.userEventTriggered(ctx, evt);
         if (evt instanceof SslHandshakeCompletionEvent) {
-            connection = connectionFactory.newConnection(ctx);
+            connection = connectionFactory.newConnection(ctx.pipeline().lastContext());
             super.userEventTriggered(ctx, evt);
             handleConnection();
         }
