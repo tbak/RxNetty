@@ -21,6 +21,8 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.reactivex.netty.client.ClientRequiredConfigurator;
 import io.reactivex.netty.client.RxClient;
+import io.reactivex.netty.pipeline.ssl.SslConfiguration;
+import io.reactivex.netty.pipeline.ssl.SslPipelineConfigurator;
 import io.reactivex.netty.protocol.http.HttpObjectAggregationConfigurator;
 import io.reactivex.netty.protocol.http.client.HttpClientPipelineConfigurator;
 import io.reactivex.netty.protocol.http.client.HttpClientRequest;
@@ -35,8 +37,6 @@ import io.reactivex.netty.protocol.text.sse.ServerSentEvent;
 
 import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
-
-import static io.reactivex.netty.pipeline.SslPipelineConfigurator.SecurityLevel;
 
 /**
  * Utility class that provides a variety of {@link PipelineConfigurator} implementations
@@ -93,17 +93,15 @@ public final class PipelineConfigurators {
      * This configurator creates self signed certificate for the server. Its primarily for testing purposes.
      */
     public static <I, O> PipelineConfigurator<I, O> sslInsecureServerConfigurator() {
-        return new ServerSslPipelineConfigurator.ServerSslPipelineConfiguratorBuilder()
-                .withSecurityLevel(SecurityLevel.INSECURE)
-                .build();
+        return new SslPipelineConfigurator<I, O>(SslConfiguration.selfSignedServer());
     }
 
     public static <I, O> PipelineConfigurator<I, O> sslClientConfigurator() {
-        return new ClientSslPipelineConfigurator.ClientSslPipelineConfiguratorBuilder().withSecurityLevel(SecurityLevel.TRUSTED_SERVER).build();
+        return new SslPipelineConfigurator<I, O>(SslConfiguration.defaultTrustStoreClient());
     }
 
     public static <I, O> PipelineConfigurator<I, O> sslInsecureClientConfigurator() {
-        return new ClientSslPipelineConfigurator.ClientSslPipelineConfiguratorBuilder().withSecurityLevel(SecurityLevel.INSECURE).build();
+        return new SslPipelineConfigurator<I, O>(SslConfiguration.trustAllClient());
     }
 
     /**
