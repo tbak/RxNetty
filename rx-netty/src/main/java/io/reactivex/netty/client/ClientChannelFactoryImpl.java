@@ -18,6 +18,8 @@ package io.reactivex.netty.client;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.handler.ssl.SslHandler;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 import io.reactivex.netty.channel.ObservableConnection;
 import io.reactivex.netty.pipeline.RxRequiredConfigurator;
 import rx.Subscriber;
@@ -69,14 +71,14 @@ public class ClientChannelFactoryImpl<I, O> implements ClientChannelFactory<I, O
                     } else {
                         @SuppressWarnings("unchecked")
                         ConnectionLifecycleHandler<I, O> handler = (ConnectionLifecycleHandler<I, O>) lifecycleHandler;
-                        ChannelHandler sslHandler = pipeline.get(SslHandler.class);
+                        SslHandler sslHandler = pipeline.get(SslHandler.class);
                         if (null == sslHandler) {
                             handler.setConnection(newConnection);
                             onNewConnection(newConnection, subscriber);
                         } else {
-                            handler.setConnectionAction(new Action0() {
+                            sslHandler.handshakeFuture().addListener(new GenericFutureListener<Future<? super Channel>>() {
                                 @Override
-                                public void call() {
+                                public void operationComplete(Future<? super Channel> future) throws Exception {
                                     onNewConnection(newConnection, subscriber);
                                 }
                             });

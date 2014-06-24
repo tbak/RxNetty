@@ -25,7 +25,6 @@ import io.reactivex.netty.channel.SingleNioLoopProvider;
 import io.reactivex.netty.client.ClientBuilder;
 import io.reactivex.netty.client.RxClient;
 import io.reactivex.netty.pipeline.PipelineConfigurator;
-import io.reactivex.netty.pipeline.ssl.SSLEngineFactory;
 import io.reactivex.netty.protocol.http.client.CompositeHttpClient;
 import io.reactivex.netty.protocol.http.client.CompositeHttpClientBuilder;
 import io.reactivex.netty.protocol.http.client.ContentSource;
@@ -98,14 +97,6 @@ public final class RxNetty {
         return newTcpServerBuilder(port, connectionHandler).pipelineConfigurator(pipelineConfigurator).build();
     }
 
-    public static <I, O> RxServer<I, O> createSslTcpServer(final int port, SSLEngineFactory sslEngineFactory, PipelineConfigurator<I, O> pipelineConfigurator,
-                                                        ConnectionHandler<I, O> connectionHandler) {
-        return newTcpServerBuilder(port, connectionHandler)
-                .withSslEngineFactory(sslEngineFactory)
-                .pipelineConfigurator(pipelineConfigurator)
-                .build();
-    }
-
     public static <I, O> ClientBuilder<I, O> newTcpClientBuilder(String host, int port) {
         return new ClientBuilder<I, O>(host, port).enableWireLogging(LogLevel.DEBUG);
     }
@@ -114,33 +105,13 @@ public final class RxNetty {
         return RxNetty.<I, O>newTcpClientBuilder(host, port).pipelineConfigurator(configurator).build();
     }
 
-    public static <I, O> RxClient<I, O> createSslTcpClient(String host, int port, SSLEngineFactory sslEngineFactory, PipelineConfigurator<O, I> configurator) {
-        return RxNetty.<I,O>newTcpClientBuilder(host, port)
-                .withSslEngineFactory(sslEngineFactory)
-                .pipelineConfigurator(configurator)
-                .build();
-    }
-
     public static RxServer<ByteBuf, ByteBuf> createTcpServer(final int port,
                                                              ConnectionHandler<ByteBuf, ByteBuf> connectionHandler) {
         return new ServerBuilder<ByteBuf, ByteBuf>(port, connectionHandler).build();
     }
 
-    public static RxServer<ByteBuf, ByteBuf> createSslTcpServer(final int port, SSLEngineFactory sslEngineFactory,
-                                                             ConnectionHandler<ByteBuf, ByteBuf> connectionHandler) {
-        return new ServerBuilder<ByteBuf, ByteBuf>(port, connectionHandler)
-                .withSslEngineFactory(sslEngineFactory)
-                .build();
-    }
-
     public static RxClient<ByteBuf, ByteBuf> createTcpClient(String host, int port) {
         return RxNetty.<ByteBuf, ByteBuf>newTcpClientBuilder(host, port).build();
-    }
-
-    public static RxClient<ByteBuf, ByteBuf> createSslTcpClient(String host, int port, SSLEngineFactory sslEngineFactory) {
-        return RxNetty.<ByteBuf, ByteBuf>newTcpClientBuilder(host, port)
-                .withSslEngineFactory(sslEngineFactory)
-                .build();
     }
 
     public static <I, O> HttpServerBuilder<I, O> newHttpServerBuilder(int port, RequestHandler<I, O> requestHandler) {
@@ -156,20 +127,8 @@ public final class RxNetty {
         return newHttpServerBuilder(port, requestHandler).build();
     }
 
-    public static HttpServer<ByteBuf, ByteBuf> createSslHttpServer(int port, SSLEngineFactory sslEngineFactory, RequestHandler<ByteBuf, ByteBuf> requestHandler) {
-        return newHttpServerBuilder(port, requestHandler)
-                .withSslEngineFactory(sslEngineFactory)
-                .build();
-    }
-
     public static HttpClient<ByteBuf, ByteBuf> createHttpClient(String host, int port) {
         return RxNetty.<ByteBuf, ByteBuf>newHttpClientBuilder(host, port).build();
-    }
-
-    public static HttpClient<ByteBuf, ByteBuf> createSslHttpClient(String host, int port, SSLEngineFactory sslEngineFactory) {
-        return RxNetty.<ByteBuf, ByteBuf>newHttpClientBuilder(host, port)
-                .withSslEngineFactory(sslEngineFactory)
-                .build();
     }
 
     public static <I, O> HttpServer<I, O> createHttpServer(int port,
@@ -178,28 +137,10 @@ public final class RxNetty {
         return newHttpServerBuilder(port, requestHandler).pipelineConfigurator(configurator).build();
     }
 
-    public static <I, O> HttpServer<I, O> createSslHttpServer(int port, SSLEngineFactory sslEngineFactory,
-                                                           RequestHandler<I, O> requestHandler,
-                                                           PipelineConfigurator<HttpServerRequest<I>, HttpServerResponse<O>> configurator) {
-        return newHttpServerBuilder(port, requestHandler)
-                .withSslEngineFactory(sslEngineFactory)
-                .pipelineConfigurator(configurator)
-                .build();
-    }
-
     public static <I, O> HttpClient<I, O> createHttpClient(String host, int port,
                                                            PipelineConfigurator<HttpClientResponse<O>,
                                                            HttpClientRequest<I>> configurator) {
         return RxNetty.<I, O>newHttpClientBuilder(host, port).pipelineConfigurator(configurator).build();
-    }
-
-    public static <I, O> HttpClient<I, O> createSslHttpClient(String host, int port, SSLEngineFactory sslEngineFactory,
-                                                           PipelineConfigurator<HttpClientResponse<O>,
-                                                           HttpClientRequest<I>> configurator) {
-        return RxNetty.<I, O>newHttpClientBuilder(host, port)
-                .withSslEngineFactory(sslEngineFactory)
-                .pipelineConfigurator(configurator)
-                .build();
     }
 
     public static Observable<HttpClientResponse<ByteBuf>> createHttpRequest(HttpClientRequest<ByteBuf> request) {
