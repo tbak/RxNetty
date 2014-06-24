@@ -19,6 +19,7 @@ import io.reactivex.netty.RxNetty;
 import io.reactivex.netty.channel.ConnectionHandler;
 import io.reactivex.netty.channel.ObservableConnection;
 import io.reactivex.netty.pipeline.PipelineConfigurators;
+import io.reactivex.netty.pipeline.ssl.DefaultFactories;
 import io.reactivex.netty.server.RxServer;
 import rx.Observable;
 import rx.functions.Func1;
@@ -37,27 +38,29 @@ public final class SslTcpEchoServer {
     }
 
     public RxServer<String, String> createServer() {
-        RxServer<String, String> server = RxNetty.createSslInsecureTcpServer(port, PipelineConfigurators.textOnlyConfigurator(),
-                new ConnectionHandler<String, String>() {
+        RxServer<String, String> server = RxNetty.newTcpServerBuilder(port, new ConnectionHandler<String, String>() {
+            @Override
+            public Observable<Void> handle(
+                    final ObservableConnection<String, String> connection) {
+                System.out.println("New client connection established.");
+                connection.writeAndFlush("Welcome! \n\n");
+                return connection.getInput().flatMap(new Func1<String, Observable<Void>>() {
                     @Override
-                    public Observable<Void> handle(
-                            final ObservableConnection<String, String> connection) {
-                        System.out.println("New client connection established.");
-                        connection.writeAndFlush("Welcome! \n\n");
-                        return connection.getInput().flatMap(new Func1<String, Observable<Void>>() {
-                            @Override
-                            public Observable<Void> call(String msg) {
-                                System.out.println("onNext: " + msg);
-                                msg = msg.trim();
-                                if (!msg.isEmpty()) {
-                                    return connection.writeAndFlush("echo => " + msg + '\n');
-                                } else {
-                                    return Observable.empty();
-                                }
-                            }
-                        });
+                    public Observable<Void> call(String msg) {
+                        System.out.println("onNext: " + msg);
+                        msg = msg.trim();
+                        if (!msg.isEmpty()) {
+                            return connection.writeAndFlush("echo => " + msg + '\n');
+                        } else {
+                            return Observable.empty();
+                        }
                     }
                 });
+            }
+        }).withSslEngineFactory(DefaultFactories.SELF_SIGNED)
+                .appendPipelineConfigurator(PipelineConfigurators.textOnlyConfigurator())
+                .build();
+
         System.out.println("TCP echo server started...");
         return server;
     }

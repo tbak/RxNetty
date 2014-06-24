@@ -18,6 +18,7 @@ package io.reactivex.netty.examples.http.ssl;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.netty.RxNetty;
+import io.reactivex.netty.pipeline.ssl.DefaultFactories;
 import io.reactivex.netty.protocol.http.client.HttpClient;
 import io.reactivex.netty.protocol.http.client.HttpClientRequest;
 import io.reactivex.netty.protocol.http.client.HttpClientResponse;
@@ -28,7 +29,7 @@ import rx.functions.Func2;
 
 import java.nio.charset.Charset;
 
-import static io.reactivex.netty.examples.http.ssl.SslHelloWorldServer.DEFAULT_PORT;
+import static io.reactivex.netty.examples.http.ssl.SslHelloWorldServer.*;
 
 /**
  * @author Tomasz Bak
@@ -42,7 +43,9 @@ public class SslHelloWorldClient {
     }
 
     public HttpResponseStatus sendHelloRequest() throws Exception {
-        HttpClient<ByteBuf, ByteBuf> rxClient = RxNetty.createSslInsecureHttpClient("localhost", port);
+        HttpClient<ByteBuf, ByteBuf> rxClient = RxNetty.<ByteBuf, ByteBuf>newHttpClientBuilder("localhost", port)
+                .withSslEngineFactory(DefaultFactories.TRUST_ALL)
+                .build();
 
         HttpResponseStatus statusCode = rxClient.submit(HttpClientRequest.createGet("/hello"))
                 .mergeMap(new Func1<HttpClientResponse<ByteBuf>, Observable<ByteBuf>>() {

@@ -17,6 +17,7 @@ package io.reactivex.netty.examples.http.ssl;
 
 import io.netty.buffer.ByteBuf;
 import io.reactivex.netty.RxNetty;
+import io.reactivex.netty.pipeline.ssl.DefaultFactories;
 import io.reactivex.netty.protocol.http.server.HttpServer;
 import io.reactivex.netty.protocol.http.server.HttpServerRequest;
 import io.reactivex.netty.protocol.http.server.HttpServerResponse;
@@ -40,13 +41,13 @@ public final class SslHelloWorldServer {
     }
 
     public HttpServer<ByteBuf, ByteBuf> createServer() throws CertificateException, SSLException {
-        HttpServer<ByteBuf, ByteBuf> server = RxNetty.createSslInsecureHttpServer(port, new RequestHandler<ByteBuf, ByteBuf>() {
+        HttpServer<ByteBuf, ByteBuf> server = RxNetty.newHttpServerBuilder(port, new RequestHandler<ByteBuf, ByteBuf>() {
             @Override
             public Observable<Void> handle(HttpServerRequest<ByteBuf> request, final HttpServerResponse<ByteBuf> response) {
                 response.writeStringAndFlush("Welcome!!");
                 return response.close();
             }
-        });
+        }).withSslEngineFactory(DefaultFactories.SELF_SIGNED).build();
 
         System.out.println("HTTP hello world server started...");
         return server;

@@ -21,7 +21,7 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.reactivex.netty.client.ClientRequiredConfigurator;
 import io.reactivex.netty.client.RxClient;
-import io.reactivex.netty.pipeline.ssl.SslConfiguration;
+import io.reactivex.netty.pipeline.ssl.SSLEngineFactory;
 import io.reactivex.netty.pipeline.ssl.SslPipelineConfigurator;
 import io.reactivex.netty.protocol.http.HttpObjectAggregationConfigurator;
 import io.reactivex.netty.protocol.http.client.HttpClientPipelineConfigurator;
@@ -89,19 +89,8 @@ public final class PipelineConfigurators {
         return new SseOverHttpServerPipelineConfigurator<I>();
     }
 
-    /**
-     * This configurator creates self signed certificate for the server. Its primarily for testing purposes.
-     */
-    public static <I, O> PipelineConfigurator<I, O> sslInsecureServerConfigurator() {
-        return new SslPipelineConfigurator<I, O>(SslConfiguration.selfSignedServer());
-    }
-
-    public static <I, O> PipelineConfigurator<I, O> sslClientConfigurator() {
-        return new SslPipelineConfigurator<I, O>(SslConfiguration.defaultTrustStoreClient());
-    }
-
-    public static <I, O> PipelineConfigurator<I, O> sslInsecureClientConfigurator() {
-        return new SslPipelineConfigurator<I, O>(SslConfiguration.trustAllClient());
+    public static <I, O> PipelineConfigurator<I, O> sslConfigurator(SSLEngineFactory sslEngineFactory) {
+        return new SslPipelineConfigurator<I, O>(sslEngineFactory);
     }
 
     /**

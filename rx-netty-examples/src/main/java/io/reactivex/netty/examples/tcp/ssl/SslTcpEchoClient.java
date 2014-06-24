@@ -17,7 +17,9 @@ package io.reactivex.netty.examples.tcp.ssl;
 
 import io.reactivex.netty.RxNetty;
 import io.reactivex.netty.channel.ObservableConnection;
+import io.reactivex.netty.client.RxClient;
 import io.reactivex.netty.pipeline.PipelineConfigurators;
+import io.reactivex.netty.pipeline.ssl.DefaultFactories;
 import rx.Observable;
 import rx.functions.Action0;
 import rx.functions.Func1;
@@ -26,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static io.reactivex.netty.examples.tcp.ssl.SslTcpEchoServer.DEFAULT_PORT;
+import static io.reactivex.netty.examples.tcp.ssl.SslTcpEchoServer.*;
 
 /**
  * @author Tomasz Bak
@@ -40,10 +42,12 @@ public class SslTcpEchoClient {
     }
 
     public List<String> sendEchos() {
-        Observable<ObservableConnection<String, String>> connectionObservable =
-                RxNetty.createSslInsecureTcpClient("localhost", port, PipelineConfigurators.textOnlyConfigurator()).connect();
+        RxClient<String, String> rxClient = RxNetty.<String, String>newTcpClientBuilder("localhost", port)
+                .withSslEngineFactory(DefaultFactories.TRUST_ALL)
+                .pipelineConfigurator(PipelineConfigurators.textOnlyConfigurator())
+                .build();
 
-        Iterable<Object> echos = connectionObservable.flatMap(new Func1<ObservableConnection<String, String>, Observable<?>>() {
+        Iterable<Object> echos = rxClient.connect().flatMap(new Func1<ObservableConnection<String, String>, Observable<?>>() {
             @Override
             public Observable<?> call(final ObservableConnection<String, String> connection) {
                 // we expect the EchoServer to output a single value at the beginning
