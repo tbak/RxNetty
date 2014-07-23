@@ -16,6 +16,8 @@
 
 package io.reactivex.netty.protocol.http.client;
 
+import java.net.SocketAddress;
+
 import io.netty.bootstrap.Bootstrap;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
@@ -35,7 +37,7 @@ import rx.functions.Action0;
 
 public class HttpClientImpl<I, O> extends RxClientImpl<HttpClientRequest<I>, HttpClientResponse<O>> implements HttpClient<I, O> {
 
-    public HttpClientImpl(String name, ServerInfo serverInfo, Bootstrap clientBootstrap,
+    public HttpClientImpl(String name, SocketAddress serverInfo, Bootstrap clientBootstrap,
                           PipelineConfigurator<HttpClientResponse<O>, HttpClientRequest<I>> pipelineConfigurator,
                           ClientConfig clientConfig,
                           ClientChannelFactory<HttpClientResponse<O>, HttpClientRequest<I>> channelFactory,
@@ -46,7 +48,7 @@ public class HttpClientImpl<I, O> extends RxClientImpl<HttpClientRequest<I>, Htt
               eventsSubject);
     }
 
-    public HttpClientImpl(String name, ServerInfo serverInfo, Bootstrap clientBootstrap,
+    public HttpClientImpl(String name, SocketAddress serverInfo, Bootstrap clientBootstrap,
                           PipelineConfigurator<HttpClientResponse<O>, HttpClientRequest<I>> pipelineConfigurator,
                           ClientConfig clientConfig,
                           ConnectionPoolBuilder<HttpClientResponse<O>, HttpClientRequest<I>> poolBuilder,
@@ -129,10 +131,14 @@ public class HttpClientImpl<I, O> extends RxClientImpl<HttpClientRequest<I>, Htt
 
     private void enrichRequest(HttpClientRequest<I> request, ClientConfig config) {
 
-        request.setDynamicUriParts(serverInfo.getHost(), serverInfo.getPort(), false /*Set when we handle https*/);
+        if(serverInfo instanceof ServerInfo) {
+            request.setDynamicUriParts(((ServerInfo)serverInfo).getHost(), ((ServerInfo)serverInfo).getPort(), false /*Set when we handle https*/);
+        }
 
         if(!request.getHeaders().contains(HttpHeaders.Names.HOST)) {
-            request.getHeaders().add(HttpHeaders.Names.HOST, serverInfo.getHost());
+            if(serverInfo instanceof ServerInfo) {
+                request.getHeaders().add(HttpHeaders.Names.HOST, ((ServerInfo)serverInfo).getHost());
+            }
         }
 
         if (config instanceof HttpClientConfig) {

@@ -21,6 +21,7 @@ import io.reactivex.netty.pipeline.PipelineConfiguratorComposite;
 import io.reactivex.netty.server.ErrorHandler;
 import io.reactivex.netty.server.RxServer;
 
+import java.net.SocketAddress;
 import java.util.List;
 
 /**
@@ -40,6 +41,19 @@ public class HttpServer<I, O> extends RxServer<HttpServerRequest<I>, HttpServerR
                PipelineConfigurator<HttpServerRequest<I>, HttpServerResponse<O>> pipelineConfigurator,
                HttpConnectionHandler<I, O> connectionHandler) {
         super(bootstrap, port, addRequiredConfigurator(pipelineConfigurator), connectionHandler);
+        this.connectionHandler = connectionHandler;
+        init();
+    }
+
+    protected HttpServer(ServerBootstrap bootstrap, SocketAddress localAddress,
+               PipelineConfigurator<HttpServerRequest<I>, HttpServerResponse<O>> pipelineConfigurator,
+               HttpConnectionHandler<I, O> connectionHandler) {
+        super(bootstrap, localAddress, addRequiredConfigurator(pipelineConfigurator), connectionHandler);
+        this.connectionHandler = connectionHandler;
+        init();
+    }
+
+    private void init() {
         @SuppressWarnings({"unchecked", "rawtypes"})
         List<PipelineConfigurator> constituentConfigurators =
                 ((PipelineConfiguratorComposite) this.pipelineConfigurator).getConstituentConfigurators();
@@ -56,7 +70,6 @@ public class HttpServer<I, O> extends RxServer<HttpServerRequest<I>, HttpServerR
             throw new IllegalStateException("No server required configurator added.");
         }
         connectionHandler.useMetricEventsSubject(eventsSubject);
-        this.connectionHandler = connectionHandler;
     }
 
     public HttpServer<I, O> withErrorResponseGenerator(ErrorResponseGenerator<O> responseGenerator) {

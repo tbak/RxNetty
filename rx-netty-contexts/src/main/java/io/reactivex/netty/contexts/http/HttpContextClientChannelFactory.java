@@ -16,6 +16,8 @@
 
 package io.reactivex.netty.contexts.http;
 
+import java.net.SocketAddress;
+
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.reactivex.netty.channel.ObservableConnection;
@@ -49,7 +51,7 @@ public class HttpContextClientChannelFactory<I, O> extends
     @Override
     public ChannelFuture connect(
             Subscriber<? super ObservableConnection<HttpClientResponse<O>, HttpClientRequest<I>>> subscriber,
-            RxClient.ServerInfo serverInfo,
+            SocketAddress serverInfo,
             ClientConnectionFactory<HttpClientResponse<O>, HttpClientRequest<I>,
                     ? extends ObservableConnection<HttpClientResponse<O>, HttpClientRequest<I>>> connectionFactory) {
         final ContextCapturingSubscriber capturingSubscriber = new ContextCapturingSubscriber(subscriber);

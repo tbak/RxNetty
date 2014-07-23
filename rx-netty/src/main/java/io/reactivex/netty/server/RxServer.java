@@ -15,6 +15,8 @@
  */
 package io.reactivex.netty.server;
 
+import java.net.SocketAddress;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ServerChannel;
 import io.reactivex.netty.channel.ConnectionHandler;
@@ -31,6 +33,13 @@ public class RxServer<I, O> extends AbstractServer<I, O, ServerBootstrap, Server
     public RxServer(ServerBootstrap bootstrap, int port, final PipelineConfigurator<I, O> pipelineConfigurator,
                     final ConnectionHandler<I, O> connectionHandler) {
         super(bootstrap, port);
+        this.pipelineConfigurator = pipelineConfigurator;
+        bootstrap.childHandler(newChannelInitializer(pipelineConfigurator, connectionHandler));
+    }
+
+    public RxServer(ServerBootstrap bootstrap, SocketAddress localAddress, final PipelineConfigurator<I, O> pipelineConfigurator,
+                    final ConnectionHandler<I, O> connectionHandler) {
+        super(bootstrap, localAddress);
         this.pipelineConfigurator = pipelineConfigurator;
         bootstrap.childHandler(newChannelInitializer(pipelineConfigurator, connectionHandler));
     }

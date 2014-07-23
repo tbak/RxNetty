@@ -15,6 +15,8 @@
  */
 package io.reactivex.netty.client;
 
+import java.net.SocketAddress;
+
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -26,6 +28,7 @@ import io.netty.handler.ssl.SslHandler;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.reactivex.netty.channel.ObservableConnection;
+import io.reactivex.netty.client.RxClient.ServerInfo;
 import io.reactivex.netty.metrics.Clock;
 import io.reactivex.netty.metrics.MetricEventsSubject;
 import io.reactivex.netty.pipeline.RxRequiredConfigurator;
@@ -56,11 +59,13 @@ public class ClientChannelFactoryImpl<I, O> implements ClientChannelFactory<I, O
 
     @Override
     public ChannelFuture connect(final Subscriber<? super ObservableConnection<I, O>> subscriber,
-                                 RxClient.ServerInfo serverInfo,
+                                 SocketAddress serverInfo,
                                  final ClientConnectionFactory<I, O,? extends ObservableConnection<I, O>> connectionFactory) {
         final long startTimeMillis = Clock.newStartTimeMillis();
         eventsSubject.onEvent(ClientMetricsEvent.CONNECT_START);
-        final ChannelFuture connectFuture = clientBootstrap.connect(serverInfo.getHost(), serverInfo.getPort());
+        final ChannelFuture connectFuture = serverInfo instanceof ServerInfo ?
+                clientBootstrap.connect(((ServerInfo)serverInfo).getHost(), ((ServerInfo)serverInfo).getPort()) :
+                clientBootstrap.connect(serverInfo);
 
         subscriber.add(Subscriptions.create(new Action0() {
             @Override

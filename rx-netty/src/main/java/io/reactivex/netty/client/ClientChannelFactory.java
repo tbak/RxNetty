@@ -15,6 +15,8 @@
  */
 package io.reactivex.netty.client;
 
+import java.net.SocketAddress;
+
 import io.netty.channel.ChannelFuture;
 import io.reactivex.netty.channel.ObservableConnection;
 import io.reactivex.netty.metrics.MetricEventsSubject;
@@ -29,7 +31,7 @@ import rx.Subscriber;
  */
 public interface ClientChannelFactory<I, O> {
 
-    ChannelFuture connect(Subscriber<? super ObservableConnection<I, O>> subscriber, RxClient.ServerInfo serverInfo,
+    ChannelFuture connect(Subscriber<? super ObservableConnection<I, O>> subscriber, SocketAddress serverInfo,
                           ClientConnectionFactory<I, O, ? extends ObservableConnection<I, O>> connectionFactory);
 
     void onNewConnection(ObservableConnection<I, O> newConnection,

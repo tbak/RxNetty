@@ -60,8 +60,12 @@ public class HttpServerBuilder<I, O>
 
     @Override
     protected HttpServer<I, O> createServer() {
-        return new HttpServer<I, O>(serverBootstrap, port, pipelineConfigurator,
-                                    (HttpConnectionHandler<I, O>) connectionHandler);
+        if(localAddress == null) {
+            return new HttpServer<I, O>(serverBootstrap, port, pipelineConfigurator,
+                    (HttpConnectionHandler<I, O>) connectionHandler);
+        }
+        return new HttpServer<I, O>(serverBootstrap, localAddress, pipelineConfigurator,
+                (HttpConnectionHandler<I, O>) connectionHandler);
     }
 
     @Override

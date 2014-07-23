@@ -28,6 +28,7 @@ import io.reactivex.netty.pipeline.PipelineConfigurator;
 import rx.Observable;
 import rx.Subscription;
 
+import java.net.SocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -40,7 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class CompositeHttpClient<I, O> extends HttpClientImpl<I, O> {
 
-    private final ConcurrentHashMap<ServerInfo, HttpClient<I, O>> httpClients;
+    private final ConcurrentHashMap<SocketAddress, HttpClient<I, O>> httpClients;
 
     /**
      * This will be the unmodified configurator that can be used for all clients.
@@ -48,7 +49,7 @@ public class CompositeHttpClient<I, O> extends HttpClientImpl<I, O> {
     private final PipelineConfigurator<HttpClientResponse<O>, HttpClientRequest<I>> pipelineConfigurator;
     private final ConnectionPoolBuilder<HttpClientResponse<O>, HttpClientRequest<I>> poolBuilder;
 
-    public CompositeHttpClient(String name, ServerInfo defaultServer, Bootstrap clientBootstrap,
+    public CompositeHttpClient(String name, SocketAddress defaultServer, Bootstrap clientBootstrap,
                                PipelineConfigurator<HttpClientResponse<O>, HttpClientRequest<I>> pipelineConfigurator,
                                ClientConfig clientConfig,
                                ClientChannelFactory<HttpClientResponse<O>, HttpClientRequest<I>> channelFactory,
@@ -57,19 +58,19 @@ public class CompositeHttpClient<I, O> extends HttpClientImpl<I, O> {
                                MetricEventsSubject<ClientMetricsEvent<?>> eventsSubject) {
         super(name, defaultServer, clientBootstrap, pipelineConfigurator, clientConfig, channelFactory, connectionFactory,
               eventsSubject);
-        httpClients = new ConcurrentHashMap<ServerInfo, HttpClient<I, O>>();
+        httpClients = new ConcurrentHashMap<SocketAddress, HttpClient<I, O>>();
         this.pipelineConfigurator = pipelineConfigurator;
         poolBuilder = null;
         httpClients.put(defaultServer, this); // So that submit() with default serverInfo also goes to the same client as no serverinfo.
     }
 
-    CompositeHttpClient(String name, ServerInfo defaultServer, Bootstrap clientBootstrap,
+    CompositeHttpClient(String name, SocketAddress defaultServer, Bootstrap clientBootstrap,
                         PipelineConfigurator<HttpClientResponse<O>, HttpClientRequest<I>> pipelineConfigurator,
                         ClientConfig clientConfig,
                         ConnectionPoolBuilder<HttpClientResponse<O>, HttpClientRequest<I>> poolBuilder,
                         MetricEventsSubject<ClientMetricsEvent<?>> eventsSubject) {
         super(name, defaultServer, clientBootstrap, pipelineConfigurator, clientConfig, poolBuilder, eventsSubject);
-        httpClients = new ConcurrentHashMap<ServerInfo, HttpClient<I, O>>();
+        httpClients = new ConcurrentHashMap<SocketAddress, HttpClient<I, O>>();
         this.pipelineConfigurator = pipelineConfigurator;
         this.poolBuilder = poolBuilder;
         httpClients.put(defaultServer, this); // So that submit() with default serverInfo also goes to the same client as no serverinfo.
@@ -115,7 +116,10 @@ public class CompositeHttpClient<I, O> extends HttpClientImpl<I, O> {
     }
 
     public ServerInfo getDefaultServer() {
-        return serverInfo;
+        if (serverInfo instanceof ServerInfo){
+            return (ServerInfo) serverInfo;
+        }
+        throw new IllegalStateException("ServerInfo object not available");
     }
 
     private HttpClientImpl<I, O> newClient(ServerInfo serverInfo) {

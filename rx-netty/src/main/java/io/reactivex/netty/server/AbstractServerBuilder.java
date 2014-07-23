@@ -16,6 +16,8 @@
 
 package io.reactivex.netty.server;
 
+import java.net.SocketAddress;
+
 import io.netty.bootstrap.AbstractBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
@@ -43,6 +45,7 @@ public abstract class AbstractServerBuilder<I, O, T extends AbstractBootstrap<T,
     protected Class<? extends C> serverChannelClass;
     protected final ConnectionHandler<I, O> connectionHandler;
     protected final int port;
+    protected SocketAddress localAddress;
     protected LogLevel wireLogginLevel;
     protected MetricEventsListenerFactory eventListenersFactory;
     private SSLEngineFactory sslEngineFactory;
@@ -65,7 +68,12 @@ public abstract class AbstractServerBuilder<I, O, T extends AbstractBootstrap<T,
         return returnBuilder();
     }
 
-    public B channel(Class<C> serverChannelClass) {
+    public B localAddress(SocketAddress localAddress) {
+        this.localAddress = localAddress;
+        return returnBuilder();
+    }
+
+    public <CC extends C> B channel(Class<CC> serverChannelClass) {
         this.serverChannelClass = serverChannelClass;
         return returnBuilder();
     }

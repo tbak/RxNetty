@@ -21,6 +21,7 @@ import io.reactivex.netty.client.ClientChannelFactoryImpl;
 import io.reactivex.netty.client.ClientMetricsEvent;
 import io.reactivex.netty.client.ConnectionPoolBuilder;
 import io.reactivex.netty.client.RxClient;
+import io.reactivex.netty.client.RxClient.ServerInfo;
 import io.reactivex.netty.client.RxClientImpl;
 import io.reactivex.netty.metrics.MetricEventsListener;
 import io.reactivex.netty.metrics.MetricEventsListenerFactory;
@@ -47,7 +48,7 @@ public class UdpClientBuilder<I, O> extends AbstractClientBuilder<I,O, UdpClient
 
     @Override
     protected RxClient<I, O> createClient() {
-        return new UdpClient<I, O>(getOrCreateName(), serverInfo, bootstrap, pipelineConfigurator, clientConfig,
+        return new UdpClient<I, O>(getOrCreateName(), (ServerInfo)serverInfo, bootstrap, pipelineConfigurator, clientConfig,
                                    channelFactory, eventsSubject);
     }
 

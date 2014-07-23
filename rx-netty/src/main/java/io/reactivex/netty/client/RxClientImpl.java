@@ -29,6 +29,7 @@ import rx.Observable.OnSubscribe;
 import rx.Subscriber;
 import rx.Subscription;
 
+import java.net.SocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -40,7 +41,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class RxClientImpl<I, O> implements RxClient<I, O> {
 
     protected final String name;
-    protected final ServerInfo serverInfo;
+    protected final SocketAddress serverInfo;
     protected final Bootstrap clientBootstrap;
     protected final PipelineConfigurator<O, I> pipelineConfigurator;
     protected final ClientChannelFactory<O, I> channelFactory;
@@ -50,7 +51,7 @@ public class RxClientImpl<I, O> implements RxClient<I, O> {
     protected final ConnectionPool<O, I> pool;
     private final AtomicBoolean isShutdown = new AtomicBoolean();
 
-    public RxClientImpl(String name, ServerInfo serverInfo, Bootstrap clientBootstrap,
+    public RxClientImpl(String name, SocketAddress serverInfo, Bootstrap clientBootstrap,
                         PipelineConfigurator<O, I> pipelineConfigurator,
                         ClientConfig clientConfig, ClientChannelFactory<O, I> channelFactory,
                         ClientConnectionFactory<O, I, ? extends ObservableConnection<O, I>> connectionFactory,
@@ -94,7 +95,7 @@ public class RxClientImpl<I, O> implements RxClient<I, O> {
         });
     }
 
-    public RxClientImpl(String name, ServerInfo serverInfo, Bootstrap clientBootstrap,
+    public RxClientImpl(String name, SocketAddress serverInfo, Bootstrap clientBootstrap,
                         PipelineConfigurator<O, I> pipelineConfigurator,
                         ClientConfig clientConfig, ConnectionPoolBuilder<O, I> poolBuilder,
                         MetricEventsSubject<ClientMetricsEvent<?>> eventsSubject) {

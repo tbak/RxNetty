@@ -21,11 +21,13 @@ import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.local.LocalAddress;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.reactivex.netty.RxNetty;
 import io.reactivex.netty.channel.ObservableConnection;
+import io.reactivex.netty.client.RxClient.ServerInfo;
 import io.reactivex.netty.metrics.MetricEventsListener;
 import io.reactivex.netty.metrics.MetricEventsListenerFactory;
 import io.reactivex.netty.metrics.MetricEventsSubject;
@@ -33,6 +35,7 @@ import io.reactivex.netty.pipeline.PipelineConfigurator;
 import io.reactivex.netty.pipeline.PipelineConfigurators;
 import io.reactivex.netty.pipeline.ssl.SSLEngineFactory;
 
+import java.net.SocketAddress;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -45,7 +48,7 @@ public abstract class AbstractClientBuilder<I, O, B extends AbstractClientBuilde
     private static final AtomicInteger clientUniqueNameCounter = new AtomicInteger();
 
     private String name;
-    protected final RxClientImpl.ServerInfo serverInfo;
+    protected volatile SocketAddress serverInfo;
     protected final Bootstrap bootstrap;
     protected final ClientConnectionFactory<O, I, ? extends ObservableConnection<O, I>> connectionFactory;
     protected ClientChannelFactory<O, I> channelFactory;
@@ -115,6 +118,11 @@ public abstract class AbstractClientBuilder<I, O, B extends AbstractClientBuilde
         return returnBuilder();
     }
 
+    public B remoteAddress(LocalAddress remoteAddress) {
+        this.serverInfo = remoteAddress;
+        return returnBuilder();
+    }
+
     public B eventloop(EventLoopGroup eventLoopGroup) {
         this.eventLoopGroup = eventLoopGroup;
         return returnBuilder();
@@ -156,7 +164,7 @@ public abstract class AbstractClientBuilder<I, O, B extends AbstractClientBuilde
 
     public B appendPipelineConfigurator(PipelineConfigurator<O, I> additionalConfigurator) {
         return pipelineConfigurator(PipelineConfigurators.composeConfigurators(pipelineConfigurator,
-                                                                               additionalConfigurator));
+                additionalConfigurator));
     }
 
     public B withChannelFactory(ClientChannelFactory<O, I> factory) {
@@ -221,7 +229,10 @@ public abstract class AbstractClientBuilder<I, O, B extends AbstractClientBuilde
     }
 
     public RxClientImpl.ServerInfo getServerInfo() {
-        return serverInfo;
+        if(serverInfo instanceof ServerInfo) {
+            return (ServerInfo)serverInfo;
+        }
+        throw new IllegalStateException("ServerInfo not available");
     }
 
     public MetricEventsSubject<ClientMetricsEvent<?>> getEventsSubject() {
@@ -278,7 +289,10 @@ public abstract class AbstractClientBuilder<I, O, B extends AbstractClientBuilde
              * This works well as someone who wants to override the connection factory should either start with a
              * pool builder or don't choose a pooled connection later.
              */
-            poolBuilder = new ConnectionPoolBuilder<O, I>(serverInfo, channelFactory, eventsSubject); // Overrides the connection factory
+            if(!(serverInfo instanceof ServerInfo)) {
+                throw new IllegalStateException("connection pooling available only for IP channels");
+            }
+            poolBuilder = new ConnectionPoolBuilder<O, I>((ServerInfo)serverInfo, channelFactory, eventsSubject); // Overrides the connection factory
         }
         return poolBuilder;
     }

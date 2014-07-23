@@ -40,23 +40,34 @@ import java.util.concurrent.atomic.AtomicReference;
 public class AbstractServer<I, O, B extends AbstractBootstrap<B, C>, C extends Channel, S extends AbstractServer>
         implements MetricEventsPublisher<ServerMetricsEvent<?>> {
 
+
     protected enum ServerState {Created, Starting, Started, Shutdown}
 
     protected final UnpooledConnectionFactory<I,O> connectionFactory;
     protected final B bootstrap;
     protected final int port;
+    protected final SocketAddress localAddress;
     protected final AtomicReference<ServerState> serverStateRef;
     protected final MetricEventsSubject<ServerMetricsEvent<?>> eventsSubject;
     protected ErrorHandler errorHandler;
     private ChannelFuture bindFuture;
 
     public AbstractServer(B bootstrap, int port) {
+        this(bootstrap, port, null);
+    }
+
+    protected AbstractServer(B bootstrap, SocketAddress localAddress) {
+        this(bootstrap, -1, localAddress);
+    }
+
+    protected AbstractServer(B bootstrap, int port, SocketAddress localAddress) {
         if (null == bootstrap) {
             throw new NullPointerException("Bootstrap can not be null.");
         }
         serverStateRef = new AtomicReference<ServerState>(ServerState.Created);
         this.bootstrap = bootstrap;
         this.port = port;
+        this.localAddress = localAddress;
         eventsSubject = new MetricEventsSubject<ServerMetricsEvent<?>>();
         connectionFactory = UnpooledConnectionFactory.from(eventsSubject, ServerChannelMetricEventProvider.INSTANCE);
     }
@@ -76,7 +87,8 @@ public class AbstractServer<I, O, B extends AbstractBootstrap<B, C>, C extends C
         }
 
         try {
-            bindFuture = bootstrap.bind(port).sync();
+            ChannelFuture channelFuture = localAddress != null ? bootstrap.bind(localAddress) : bootstrap.bind(port);
+            bindFuture = channelFuture.sync();
             if (!bindFuture.isSuccess()) {
                 throw new RuntimeException(bindFuture.cause());
             }

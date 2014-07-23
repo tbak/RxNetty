@@ -20,6 +20,7 @@ import io.reactivex.netty.channel.ObservableConnection;
 import io.reactivex.netty.metrics.MetricEventsPublisher;
 import rx.Observable;
 
+import java.net.SocketAddress;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -128,7 +129,7 @@ public interface RxClient<I, O> extends MetricEventsPublisher<ClientMetricsEvent
         }
     }
 
-    class ServerInfo {
+    class ServerInfo extends SocketAddress {
 
         public static final String DEFAULT_HOST = "localhost";
         public static final int DEFAULT_PORT = 80;
